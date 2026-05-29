@@ -1,0 +1,199 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.0.6'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.diffplug.spotless' version '8.2.1'
+	id 'jacoco'
+	id 'idea'
+}
+
+group = 'com.sentinel.ai'
+version = '0.0.1-SNAPSHOT'
+
+jacoco {
+	toolVersion = "0.8.14"
+}
+
+def excludedFiles = [
+		'com/sentinel/ai/SentinelApplication.class',
+		'com/sentinel/ai/config/**',
+		'com/sentinel/ai/model/dto/**',
+		'com/sentinel/ai/model/enums/**'
+]
+
+spotless {
+	format 'misc', {
+		target '*.gradle', '*.md', '.gitignore'
+		trimTrailingWhitespace()
+		leadingSpacesToTabs()
+		endWithNewline()
+	}
+	java {
+		toggleOffOn()
+		palantirJavaFormat()
+		removeUnusedImports()
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
+}
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(25)
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.compilerArgs += ['--enable-preview']
+}
+
+tasks.withType(Test).configureEach {
+	jvmArgs += ['--enable-preview']
+}
+
+tasks.withType(JavaExec).configureEach {
+	jvmArgs += ['--enable-preview']
+}
+
+springBoot {
+	buildInfo()
+}
+
+bootJar {
+	manifest {
+		attributes 'Enable-Preview': 'true'
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// Spring Boot
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-jackson2'
+
+	// Database
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-database-postgresql'
+	runtimeOnly 'org.postgresql:postgresql'
+
+	// Utilities
+	implementation 'org.apache.commons:commons-lang3:3.18.0'
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// Testing
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.testcontainers:junit-jupiter:1.20.4'
+	testImplementation 'org.testcontainers:postgresql:1.20.4'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+jacocoTestReport {
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: excludedFiles)
+		}))
+	}
+	reports {
+		xml.required = true
+		html.required = true
+	}
+	finalizedBy jacocoTestCoverageVerification
+}
+
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			limit {
+				counter = 'INSTRUCTION'
+				value = 'COVEREDRATIO'
+				minimum = 0.85
+			}
+			limit {
+				counter = 'BRANCH'
+				value = 'COVEREDRATIO'
+				minimum = 0.75
+			}
+		}
+	}
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: excludedFiles)
+		}))
+	}
+}
+
+test.finalizedBy jacocoTestReport
+check.dependsOn jacocoTestCoverageVerification
+
+sourceSets {
+	integrationTest {
+		java {
+			srcDirs = ['src/test/integration/java']
+		}
+		resources {
+			srcDirs = ['src/test/integration/resources']
+		}
+		compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+		runtimeClasspath += output + compileClasspath
+	}
+	unitTest {
+		java {
+			srcDirs = ['src/test/unit/java']
+		}
+		resources {
+			srcDirs = ['src/test/unit/resources']
+		}
+		compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+		runtimeClasspath += output + compileClasspath
+	}
+}
+
+idea {
+	module {
+		testSources.from(sourceSets.integrationTest.java.srcDirs)
+	}
+}
+
+tasks.register("integrationTest", Test) {
+	description = 'Runs the integration tests.'
+	group = 'verification'
+	testClassesDirs = sourceSets.integrationTest.output.classesDirs
+	classpath = sourceSets.integrationTest.runtimeClasspath
+	shouldRunAfter test
+	testLogging { events "passed", "skipped", "failed" }
+}
+
+tasks.withType(Test).configureEach {
+	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+check.dependsOn integrationTest
+
+integrationTest {
+	useJUnitPlatform()
+}
+
+tasks.named('build').configure {
+	dependsOn 'spotlessApply'
+}

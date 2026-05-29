@@ -1,0 +1,100 @@
+{
+  "version": "1.0",
+  "rules": [
+    {
+      "id": "SEC_NO_GUARANTEED_RETURNS",
+      "name": "No Guaranteed Returns",
+      "description": "Cannot promise or guarantee specific investment returns",
+      "severity": 1.0,
+      "violationType": "GUARANTEED_RETURNS",
+      "patterns": [
+        "guarantee.*return",
+        "guaranteed.*profit",
+        "will earn.*%",
+        "assured.*return",
+        "certain.*gain",
+        "risk-free.*return",
+        "no risk.*investment",
+        "promise.*%.*return"
+      ]
+    },
+    {
+      "id": "SEC_SUITABILITY_DISCLAIMER",
+      "name": "Suitability Disclaimer Required",
+      "description": "Personalized investment advice must include disclaimer to consult a financial advisor",
+      "severity": 0.8,
+      "violationType": "MISSING_DISCLAIMER",
+      "requiresDisclaimer": true,
+      "triggerPatterns": [
+        "you should invest",
+        "i recommend.*buying",
+        "best investment for you",
+        "you should allocate",
+        "your portfolio should"
+      ],
+      "disclaimerPatterns": [
+        "consult.*financial advisor",
+        "not personalized.*advice",
+        "general information only",
+        "seek professional advice",
+        "this is not a recommendation"
+      ]
+    },
+    {
+      "id": "SEC_FAIR_DISCLOSURE",
+      "name": "Fair and Balanced Disclosure",
+      "description": "Cannot selectively disclose only benefits without mentioning risks or fees",
+      "severity": 0.7,
+      "violationType": "UNFAIR_DISCLOSURE",
+      "requiresBalancedInfo": true,
+      "benefitPatterns": [
+        "high return",
+        "excellent performance",
+        "outperform.*market",
+        "strong growth"
+      ],
+      "riskPatterns": [
+        "risk",
+        "loss",
+        "fee",
+        "charge",
+        "past performance.*not.*guarantee",
+        "may lose"
+      ]
+    },
+    {
+      "id": "FINRA_NO_UNAUTHORIZED_TAX_ADVICE",
+      "name": "No Unauthorized Tax/Legal Advice",
+      "description": "Cannot provide specific tax or legal advice without proper qualification",
+      "severity": 0.9,
+      "violationType": "UNAUTHORIZED_ADVICE",
+      "patterns": [
+        "you should claim.*deduction",
+        "file.*tax.*this way",
+        "your tax liability.*will be",
+        "legally you must",
+        "you are legally required"
+      ]
+    },
+    {
+      "id": "FINRA_ANTI_DISCRIMINATION",
+      "name": "Anti-Discrimination",
+      "description": "Cannot vary advice or rates based on protected characteristics",
+      "severity": 1.0,
+      "violationType": "DISCRIMINATORY_CONTENT",
+      "patterns": [
+        "because of your (race|gender|age|religion|ethnicity|nationality)",
+        "people like you (typically|usually|often)",
+        "based on your (demographic|background|community)"
+      ]
+    },
+    {
+      "id": "FINRA_FACTUAL_ACCURACY",
+      "name": "Factual Accuracy",
+      "description": "Rates, fees, terms must be verifiable and consistent with known product data",
+      "severity": 0.9,
+      "violationType": "FACTUAL_INACCURACY",
+      "requiresConsistencyCheck": true
+    }
+  ]
+}

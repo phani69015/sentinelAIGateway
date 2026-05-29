@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:sentinel}
+    username: ${DB_USER:sentinel}
+    password: ${DB_PASSWORD:sentinel_secure_password}
+
+logging:
+  level:
+    root: DEBUG
+    com.sentinel.ai: TRACE

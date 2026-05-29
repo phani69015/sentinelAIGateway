@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:16-alpine:///sentinel
+    username: sentinel
+    password: sentinel_secure_password
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  flyway:
+    enabled: false
+
+sentinel:
+  providers:
+    openai:
+      api-key: test-key
+      base-url: http://localhost:8089/v1
+      model: gpt-4o
+      max-tokens: 1024
+      temperature: 0.3
+    anthropic:
+      api-key: test-key
+      base-url: http://localhost:8089/v1
+      model: claude-sonnet-4-20250514
+      max-tokens: 1024
+      temperature: 0.3
+  audit:
+    provider: ANTHROPIC
+    strict-mode: false
+    timeout-ms: 10000
+  compliance:
+    rules-path: classpath:rules/sec-finra-rules.json
+
+logging:
+  level:
+    root: WARN
+    com.sentinel.ai: DEBUG

@@ -1,0 +1,65 @@
+services:
+  sentinel-ui:
+    build:
+      context: ./sentinel-ui
+      dockerfile: Dockerfile
+    container_name: sentinel-ui
+    ports:
+      - "3000:3000"
+    depends_on:
+      - sentinel-api
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+
+  sentinel-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sentinel-api
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=sentinel
+      - DB_USER=sentinel
+      - DB_PASSWORD=${DB_PASSWORD:-sentinel_secure_password}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - AUDIT_PROVIDER=${AUDIT_PROVIDER:-ANTHROPIC}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    container_name: sentinel-postgres
+    environment:
+      POSTGRES_DB: sentinel
+      POSTGRES_USER: sentinel
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-sentinel_secure_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinel -d sentinel"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  sentinel-network:
+    driver: bridge

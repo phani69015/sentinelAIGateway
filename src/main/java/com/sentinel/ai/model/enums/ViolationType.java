@@ -1,0 +1,13 @@
+package com.sentinel.ai.model.enums;
+
+public enum ViolationType {
+    GUARANTEED_RETURNS,
+    MISSING_DISCLAIMER,
+    UNFAIR_DISCLOSURE,
+    DISCRIMINATORY_CONTENT,
+    UNAUTHORIZED_ADVICE,
+    FACTUAL_INACCURACY,
+    HALLUCINATION,
+    INCONSISTENCY,
+    TOXIC_CONTENT
+}
